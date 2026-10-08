@@ -112,11 +112,12 @@ function WithdrawModal({
         body: JSON.stringify({ asset, amount }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(typeof data === "object" && data && "error" in data ? String(data.error) : "Withdrawal failed");
       onSuccess();
       onClose();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Withdrawal failed";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -234,12 +235,18 @@ function VaultCard({
         credentials: "include",
       });
       if (res.ok) setBalance(await res.json());
-    } catch {}
-    setRefreshing(false);
+    } catch {
+      setBalance(null);
+    } finally {
+      setRefreshing(false);
+    }
   }, [vault.type]);
 
   useEffect(() => {
-    fetchBalance();
+    const timer = setTimeout(() => {
+      void fetchBalance();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchBalance]);
 
   return (
@@ -383,11 +390,12 @@ function CreateVaultCard({
         credentials: "include",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setSuccess(`${meta.label} created! Tx: ${data.fundTxHash?.slice(0, 16)}…`);
+      if (!res.ok) throw new Error(typeof data === "object" && data && "error" in data ? String(data.error) : "Vault creation failed");
+      setSuccess(`${meta.label} created! Tx: ${typeof data.fundTxHash === "string" ? data.fundTxHash.slice(0, 16) : ""}…`);
       setTimeout(onCreate, 1500);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Vault creation failed";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -457,8 +465,11 @@ export default function VaultPage() {
   }, []);
 
   useEffect(() => {
-    fetchUser();
-    fetchVaults();
+    const timer = setTimeout(() => {
+      void fetchUser();
+      void fetchVaults();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchVaults]);
 
   const savingsVault = vaults.find((v) => v.type === "savings");

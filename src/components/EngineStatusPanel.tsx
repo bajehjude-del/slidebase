@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Zap, RefreshCw, CheckCircle2, XCircle,
-  ArrowUpRight, Activity, Cpu, ExternalLink,
+  Zap, RefreshCw, CheckCircle2, Activity, Cpu, ExternalLink,
 } from "lucide-react";
 
 interface EngineStatus {
@@ -64,42 +63,66 @@ function TxRow({ tx }: { tx: EngineStatus["recentTransactions"][number] }) {
 export default function EngineStatusPanel() {
   const [status, setStatus] = useState<EngineStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [triggering, setTriggering] = useState(false);
   const [lastTrigger, setLastTrigger] = useState<{ count: number; ts: string } | null>(null);
 
   const fetchStatus = useCallback(async () => {
     try {
+      setError(null);
       const res = await fetch("/api/autopilot/status");
-      if (res.ok) {
-        const data = await res.json();
-        // Guard: ensure recentTransactions is always an array
-        setStatus({
-          ...data,
-          recentTransactions: Array.isArray(data.recentTransactions) ? data.recentTransactions : [],
-        });
+      if (!res.ok) {
+        throw new Error(`Engine status request failed (${res.status})`);
       }
-    } catch {}
-    setLoading(false);
+
+      const data = await res.json();
+      setStatus({
+        ...data,
+        recentTransactions: Array.isArray(data.recentTransactions) ? data.recentTransactions : [],
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to reach automation engine";
+      setError(message);
+      setStatus(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    fetchStatus();
-    const id = setInterval(fetchStatus, 30_000);
-    return () => clearInterval(id);
+    const initialLoad = setTimeout(() => {
+      void fetchStatus();
+    }, 0);
+    const id = setInterval(() => {
+      void fetchStatus();
+    }, 30_000);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(id);
+    };
   }, [fetchStatus]);
 
   const triggerNow = async () => {
     setTriggering(true);
+    setError(null);
     try {
       const res = await fetch("/api/autopilot/monitor", { method: "POST" });
+      if (!res.ok) {
+        throw new Error(`Engine trigger failed (${res.status})`);
+      }
+
       const data = await res.json();
       setLastTrigger({
-        count: data.processed ?? 0,
+        count: Number(data.processed ?? 0),
         ts: new Date().toLocaleTimeString(),
       });
       await fetchStatus();
-    } catch {}
-    setTriggering(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Trigger request failed";
+      setError(message);
+    } finally {
+      setTriggering(false);
+    }
   };
 
   return (
@@ -128,6 +151,19 @@ export default function EngineStatusPanel() {
           {triggering ? "Running…" : "Run now"}
         </button>
       </div>
+
+      {error && (
+        <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-red-500/20 bg-red-500/[0.04] text-xs text-red-300">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => void fetchStatus()}
+            className="px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Last trigger result */}
       <AnimatePresence>
@@ -182,6 +218,12 @@ export default function EngineStatusPanel() {
       <div className="px-5 py-3">
         {loading ? (
           <p className="text-xs text-white/25 text-center py-4">Loading…</p>
+        ) : error ? (
+          <div className="text-center py-5">
+            <Activity className="w-5 h-5 text-red-400 mx-auto mb-2" />
+            <p className="text-xs text-red-300">Engine is offline or unreachable</p>
+            <p className="text-[10px] text-white/25 mt-1">Check the backend connection and retry.</p>
+          </div>
         ) : !status || (status.recentTransactions ?? []).length === 0 ? (
           <div className="text-center py-5">
             <Zap className="w-5 h-5 text-white/15 mx-auto mb-2" />

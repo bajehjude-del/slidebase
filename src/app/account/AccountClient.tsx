@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Copy, Check, ExternalLink, Zap, Shield, Crown,
   AlertTriangle, LogOut, Loader2, ChevronRight,
-  DollarSign, Calendar, TrendingUp, Clock, X,
-  CheckCircle2, ArrowUpRight, ArrowDownLeft,
+  Calendar, TrendingUp, Clock, X,
+  CheckCircle2, ArrowDownLeft,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -581,7 +581,12 @@ export default function AccountClient({ publicKey }: { publicKey: string }) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchData]);
 
   const updateLimit = (key: "dailyLimit" | "weeklyLimit", val: number | null) => {
     setData(prev => prev ? { ...prev, [key]: val } : prev);

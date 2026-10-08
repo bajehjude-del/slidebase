@@ -111,12 +111,12 @@ function WithdrawModal({
         credentials: "include",
         body: JSON.stringify({ asset, amount }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const data = await res.json() as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Unable to withdraw funds.");
       onSuccess();
       onClose();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to withdraw funds.");
     } finally {
       setLoading(false);
     }
@@ -238,9 +238,13 @@ function VaultCard({
     setRefreshing(false);
   }, [vault.type]);
 
-  useEffect(() => {
-    fetchBalance();
+  const loadBalance = useCallback(() => {
+    void fetchBalance();
   }, [fetchBalance]);
+
+  useEffect(() => {
+    loadBalance();
+  }, [loadBalance]);
 
   return (
     <>
@@ -382,12 +386,12 @@ function CreateVaultCard({
         method: "POST",
         credentials: "include",
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const data = await res.json() as { error?: string; fundTxHash?: string | null };
+      if (!res.ok) throw new Error(data.error ?? "Unable to create vault.");
       setSuccess(`${meta.label} created! Tx: ${data.fundTxHash?.slice(0, 16)}…`);
       setTimeout(onCreate, 1500);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to create vault.");
     } finally {
       setLoading(false);
     }
@@ -456,10 +460,14 @@ export default function VaultPage() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchUser();
-    fetchVaults();
+  const loadVaultPage = useCallback(() => {
+    void fetchUser();
+    void fetchVaults();
   }, [fetchVaults]);
+
+  useEffect(() => {
+    loadVaultPage();
+  }, [loadVaultPage]);
 
   const savingsVault = vaults.find((v) => v.type === "savings");
   const investVault = vaults.find((v) => v.type === "investment");

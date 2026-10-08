@@ -233,12 +233,13 @@ function NewGoalSheet({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), targetAmount: parseFloat(target), emoji }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      const data = await res.json() as { error?: string; goal?: Goal };
+      if (!res.ok) throw new Error(data.error ?? "Unable to create goal.");
+      if (!data.goal) throw new Error("The server returned an invalid goal.");
       onCreate(data.goal);
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to create goal.");
     } finally {
       setLoading(false);
     }
@@ -296,7 +297,7 @@ function NewGoalSheet({
           <div>
             <label className="text-xs text-white/40 block mb-1.5">Target amount (XLM)</label>
             <input
-              type="number" min="1" step="any"
+              type="number" min="1" step="0.01"
               value={target} onChange={e => setTarget(e.target.value)}
               placeholder="e.g. 1000"
               required

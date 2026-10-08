@@ -3,6 +3,25 @@ import GoalsClient from "./GoalsClient";
 import { getSession } from "@/lib/session";
 import { neon } from "@neondatabase/serverless";
 
+interface DatabaseGoal {
+  id: string;
+  name: string;
+  targetAmount?: string | number | null;
+  currentAmount?: string | number | null;
+  emoji?: string | null;
+  linkedRuleId?: string | null;
+  createdAt?: string | null;
+}
+
+interface DatabaseRule {
+  id: string;
+  description?: string | null;
+  action: string;
+  amount?: string | number | null;
+  isPercentage?: boolean | null;
+  status?: string | null;
+}
+
 export default async function GoalsPage() {
   const session = await getSession();
   const sql = neon(process.env.DATABASE_URL!);
@@ -31,23 +50,23 @@ export default async function GoalsPage() {
   ]);
 
   // Explicitly normalise to camelCase so GoalsClient never sees undefined fields
-  const goals = (rawGoals as any[]).map((g) => ({
+  const goals = (rawGoals as DatabaseGoal[]).map((g) => ({
     id:           g.id,
     name:         g.name,
-    targetAmount: Number(g.targetAmount ?? g.target_amount ?? 0),
-    currentAmount: Number(g.currentAmount ?? g.current_amount ?? 0),
+    targetAmount: Number(g.targetAmount ?? 0),
+    currentAmount: Number(g.currentAmount ?? 0),
     emoji:        g.emoji ?? "🎯",
-    linkedRuleId: g.linkedRuleId ?? g.linked_rule_id ?? null,
-    createdAt:    g.createdAt ?? g.created_at,
+    linkedRuleId: g.linkedRuleId ?? null,
+    createdAt:    g.createdAt ?? "",
   }));
 
-  const rules = (rawRules as any[]).map((r) => ({
+  const rules = (rawRules as DatabaseRule[]).map((r) => ({
     id:          r.id,
     description: r.description ?? null,
     action:      r.action,
     amount:      Number(r.amount ?? 0),
-    isPercentage: r.isPercentage ?? r.is_percentage ?? false,
-    status:      r.status,
+    isPercentage: r.isPercentage ?? false,
+    status:      r.status ?? "active",
   }));
 
   return (

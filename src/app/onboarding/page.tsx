@@ -56,9 +56,9 @@ export default function OnboardingPage() {
 
       // 3. On success, redirect to dashboard
       router.push("/");
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "An unexpected error occurred. Please try again.");
+    } catch (error) {
+      console.error(error);
+      setError(error instanceof Error ? error.message : "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -15,15 +15,21 @@ export async function fetchStellarBalance(publicKey: string): Promise<StellarBal
       return { xlm: "0.0000000", otherAssets: [], isUnfunded: true };
     }
 
-    const data = await res.json();
-    const balances: any[] = data.balances ?? [];
+    const data = await res.json() as {
+      balances?: Array<{
+        asset_type?: string;
+        asset_code?: string;
+        balance?: string;
+      }>;
+    };
+    const balances = data.balances ?? [];
 
     const xlmBalance = balances.find((b) => b.asset_type === "native");
     const otherAssets = balances
       .filter((b) => b.asset_type !== "native")
       .map((b) => ({
         asset: b.asset_code ?? "Unknown",
-        balance: b.balance,
+        balance: b.balance ?? "0",
       }));
 
     return {

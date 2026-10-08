@@ -206,7 +206,7 @@ function EditPanel({
           <input
             type="number"
             min="0.01"
-            step="any"
+            step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="w-full bg-white/[0.06] border border-white/[0.10] rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-blue-500/40 transition-colors pr-12"

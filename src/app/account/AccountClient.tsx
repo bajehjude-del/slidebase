@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Copy, Check, ExternalLink, Zap, Shield, Crown,
   AlertTriangle, LogOut, Loader2, ChevronRight,
-  DollarSign, Calendar, TrendingUp, Clock, X,
-  CheckCircle2, ArrowUpRight, ArrowDownLeft,
+  Calendar, TrendingUp, Clock, X,
+  CheckCircle2, ArrowDownLeft,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -249,7 +249,7 @@ function LimitRow({
             <input
               type="number"
               min="0"
-              step="any"
+              step="0.01"
               autoFocus
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -581,7 +581,13 @@ export default function AccountClient({ publicKey }: { publicKey: string }) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const loadAccount = useCallback(() => {
+    void fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    loadAccount();
+  }, [loadAccount]);
 
   const updateLimit = (key: "dailyLimit" | "weeklyLimit", val: number | null) => {
     setData(prev => prev ? { ...prev, [key]: val } : prev);

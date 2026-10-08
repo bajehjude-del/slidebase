@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Zap, RefreshCw, CheckCircle2, XCircle,
-  ArrowUpRight, Activity, Cpu, ExternalLink,
+  Zap, RefreshCw, CheckCircle2, Activity, Cpu, ExternalLink,
 } from "lucide-react";
 
 interface EngineStatus {
@@ -82,11 +81,17 @@ export default function EngineStatusPanel() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchStatus();
-    const id = setInterval(fetchStatus, 30_000);
+  const startPolling = useCallback(() => {
+    void fetchStatus();
+    const id = setInterval(() => {
+      void fetchStatus();
+    }, 30_000);
     return () => clearInterval(id);
   }, [fetchStatus]);
+
+  useEffect(() => {
+    return startPolling();
+  }, [startPolling]);
 
   const triggerNow = async () => {
     setTriggering(true);

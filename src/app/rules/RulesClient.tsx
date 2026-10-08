@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from "react";
 import {
-  Zap, Pause, Play, Trash2, Edit3, DollarSign,
-  Calendar, ChevronRight, Sparkles, CheckCircle2, X,
+  Zap, Trash2, Edit3, ChevronRight, Sparkles, CheckCircle2, X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";

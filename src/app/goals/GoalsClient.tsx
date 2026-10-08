@@ -237,8 +237,9 @@ function NewGoalSheet({
       if (!res.ok) throw new Error(data.error);
       onCreate(data.goal);
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unable to create goal";
+      setError(message);
     } finally {
       setLoading(false);
     }

@@ -22,17 +22,20 @@ export default async function ChatPage() {
   `.catch(() => []);
 
   // Normalise to camelCase so ChatClient never receives undefined fields
-  const rules = (rawRules as any[])
-    .filter((r) => r != null && r.id != null)
-    .map((r) => ({
-      id:          r.id,
-      trigger:     r.trigger     ?? "",
-      action:      r.action      ?? "",
-      amount:      Number(r.amount ?? 0),
-      isPercentage: r.isPercentage ?? r.is_percentage ?? false,
-      status:      r.status      ?? "active",
-      description: r.description ?? null,
-    }));
+  const rules = (Array.isArray(rawRules) ? rawRules : [])
+    .filter((r) => r != null && (r as Record<string, unknown>).id != null)
+    .map((r) => {
+      const rule = r as Record<string, unknown>;
+      return {
+        id: String(rule.id ?? ""),
+        trigger: typeof rule.trigger === "string" ? rule.trigger : "",
+        action: typeof rule.action === "string" ? rule.action : "",
+        amount: Number(rule.amount ?? 0),
+        isPercentage: Boolean(rule.isPercentage ?? rule.is_percentage ?? false),
+        status: typeof rule.status === "string" ? rule.status : "active",
+        description: typeof rule.description === "string" ? rule.description : null,
+      };
+    });
 
   return (
     <DashboardShell publicKey={session.publicKey}>

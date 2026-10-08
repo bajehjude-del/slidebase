@@ -119,7 +119,13 @@ export default function DashboardPage() {
   const [publicKey, setPublicKey] = useState("");
   const [xlmBalance, setXlmBalance] = useState("0");
   const [isUnfunded, setIsUnfunded] = useState(false);
-  const [txRows, setTxRows] = useState<any[]>([]);
+  const [txRows, setTxRows] = useState<Array<{
+    id: string;
+    type: string;
+    amount: number;
+    memo: string | null;
+    createdAt: string;
+  }>>([]);
   const [activeRules, setActiveRules] = useState(0);
 
   useEffect(() => {
@@ -168,7 +174,7 @@ export default function DashboardPage() {
             if (horizonRes.ok) {
               const horizonData = await horizonRes.json();
               const native = (horizonData.balances ?? []).find(
-                (b: any) => b.asset_type === "native"
+                (b: { asset_type?: string; balance?: string }) => b.asset_type === "native"
               );
               setXlmBalance(native?.balance ?? "0");
               setIsUnfunded(false);
@@ -200,12 +206,12 @@ export default function DashboardPage() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const savedThisMonth = txRows
-    .filter((tx: any) => tx.type === "save" && new Date(tx.createdAt) >= startOfMonth)
-    .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
+    .filter((tx) => tx.type === "save" && new Date(tx.createdAt) >= startOfMonth)
+    .reduce((sum: number, tx) => sum + Number(tx.amount), 0);
 
   const totalInvested = txRows
-    .filter((tx: any) => tx.type === "invest")
-    .reduce((sum: number, tx: any) => sum + Number(tx.amount), 0);
+    .filter((tx) => tx.type === "invest")
+    .reduce((sum: number, tx) => sum + Number(tx.amount), 0);
 
   const xlmNum = parseFloat(xlmBalance);
   const savingsRate = xlmNum > 0 ? Math.min(Math.round((savedThisMonth / xlmNum) * 100), 100) : 0;
@@ -306,7 +312,7 @@ export default function DashboardPage() {
             {txRows.length === 0 ? (
               <EmptyActivity />
             ) : (
-              txRows.map((tx: any) => (
+              txRows.map((tx) => (
                 <ActivityItem key={tx.id} type={tx.type} memo={tx.memo} amount={tx.amount} createdAt={tx.createdAt} />
               ))
             )}

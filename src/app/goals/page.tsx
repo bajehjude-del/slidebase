@@ -31,24 +31,30 @@ export default async function GoalsPage() {
   ]);
 
   // Explicitly normalise to camelCase so GoalsClient never sees undefined fields
-  const goals = (rawGoals as any[]).map((g) => ({
-    id:           g.id,
-    name:         g.name,
-    targetAmount: Number(g.targetAmount ?? g.target_amount ?? 0),
-    currentAmount: Number(g.currentAmount ?? g.current_amount ?? 0),
-    emoji:        g.emoji ?? "🎯",
-    linkedRuleId: g.linkedRuleId ?? g.linked_rule_id ?? null,
-    createdAt:    g.createdAt ?? g.created_at,
-  }));
+  const goals = (Array.isArray(rawGoals) ? rawGoals : []).map((g) => {
+    const goal = g as Record<string, unknown>;
+    return {
+      id: String(goal.id ?? ""),
+      name: String(goal.name ?? "Untitled goal"),
+      targetAmount: Number(goal.targetAmount ?? goal.target_amount ?? 0),
+      currentAmount: Number(goal.currentAmount ?? goal.current_amount ?? 0),
+      emoji: typeof goal.emoji === "string" ? goal.emoji : "🎯",
+      linkedRuleId: typeof goal.linkedRuleId === "string" ? goal.linkedRuleId : typeof goal.linked_rule_id === "string" ? goal.linked_rule_id : null,
+      createdAt: String(goal.createdAt ?? goal.created_at ?? new Date().toISOString()),
+    };
+  });
 
-  const rules = (rawRules as any[]).map((r) => ({
-    id:          r.id,
-    description: r.description ?? null,
-    action:      r.action,
-    amount:      Number(r.amount ?? 0),
-    isPercentage: r.isPercentage ?? r.is_percentage ?? false,
-    status:      r.status,
-  }));
+  const rules = (Array.isArray(rawRules) ? rawRules : []).map((r) => {
+    const rule = r as Record<string, unknown>;
+    return {
+      id: String(rule.id ?? ""),
+      description: typeof rule.description === "string" ? rule.description : null,
+      action: String(rule.action ?? ""),
+      amount: Number(rule.amount ?? 0),
+      isPercentage: Boolean(rule.isPercentage ?? rule.is_percentage ?? false),
+      status: String(rule.status ?? "active"),
+    };
+  });
 
   return (
     <DashboardShell publicKey={session.publicKey}>

@@ -441,7 +441,7 @@ function CoachView({ rules, onAsk }: { rules: Rule[]; onAsk: (prompt: string) =>
           <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Weekly Insights</p>
         </div>
         <p className="text-sm text-white/30">
-          Slidebase has analysed your {rules.length} rule{rules.length !== 1 ? "s" : ""}. Here's what it found:
+          Slidebase has analysed your {rules.length} rule{rules.length !== 1 ? "s" : ""}. Here&apos;s what it found:
         </p>
       </motion.div>
       <div className="space-y-4">
@@ -499,13 +499,13 @@ export default function ChatClient({ initialRules }: { initialRules: Rule[] }) {
       if (!res.ok || !data.rule) {
         setMessages(prev => [...prev, {
           id: crypto.randomUUID(), role: "assistant",
-          content: data.error ?? data.message ?? "Sorry, I couldn't parse that. Try rephrasing.",
+          content: data.error ?? data.message ?? "Sorry, I couldn&apos;t parse that. Try rephrasing.",
           isError: !data.message,
         }]);
       } else {
         setMessages(prev => [...prev, {
           id: crypto.randomUUID(), role: "assistant",
-          content: "Here's the automation rule I've created for you:",
+          content: "Here&apos;s the automation rule I&apos;ve created for you:",
           rule: data.rule,
         }]);
       }
@@ -625,7 +625,7 @@ export default function ChatClient({ initialRules }: { initialRules: Rule[] }) {
                 </div>
                 <h2 className="text-lg font-semibold text-white mb-2">What should Slidebase do?</h2>
                 <p className="text-sm text-white/35 max-w-xs mb-8">
-                  Describe your financial goal in plain English. I'll turn it into an automation rule.
+                  Describe your financial goal in plain English. I&apos;ll turn it into an automation rule.
                 </p>
                 <div className="flex flex-col gap-2 w-full max-w-sm">
                   {SUGGESTIONS.map(s => (

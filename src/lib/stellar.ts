@@ -16,14 +16,18 @@ export async function fetchStellarBalance(publicKey: string): Promise<StellarBal
     }
 
     const data = await res.json();
-    const balances: any[] = data.balances ?? [];
+    const balances = (data.balances ?? []) as Array<{
+      asset_type?: string;
+      asset_code?: string;
+      balance?: string;
+    }>;
 
     const xlmBalance = balances.find((b) => b.asset_type === "native");
     const otherAssets = balances
       .filter((b) => b.asset_type !== "native")
       .map((b) => ({
         asset: b.asset_code ?? "Unknown",
-        balance: b.balance,
+        balance: b.balance ?? "0",
       }));
 
     return {
